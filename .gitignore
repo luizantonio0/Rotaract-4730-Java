@@ -1,7 +1,6 @@
 HELP.md
 target/
 tokens/
-src/main/resources/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
