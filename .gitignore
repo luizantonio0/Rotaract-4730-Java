@@ -5,7 +5,6 @@ tokens/
 !**/src/main/**/target/
 !**/src/test/**/target/
 /credentials.json
-!**/src/main/resources/credentials.json
 
 ### STS ###
 .apt_generated
