@@ -1,13 +1,11 @@
-package app.netlify.rotaract.Web_Structure.entity.member.controller;
+package app.netlify.rotaract.Web_Structure.entity.member;
 
-import app.netlify.rotaract.Web_Structure.entity.member.model.Member;
-import app.netlify.rotaract.Web_Structure.entity.member.service.MemberService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/model")
+@RequestMapping("/member")
 public class MemberController {
     private final MemberService memberService;
 
@@ -20,7 +18,7 @@ public class MemberController {
         return memberService.getMembers();
     }
     @GetMapping("/{id}")
-    public Member getMember(@PathVariable String id) {
+    public Member getMember(@PathVariable int id) {
         return memberService.getMember(id);
     }
     @PostMapping
@@ -28,7 +26,15 @@ public class MemberController {
         memberService.saveMember(member);
     }
     @DeleteMapping("/{id}")
-    public void deleteMember(@PathVariable String id) {
+    public void deleteMember(@PathVariable int id) {
         memberService.deleteMember(id);
+    }
+    @PutMapping("/{id}")
+    public void updateMember(@RequestBody Member member, @PathVariable int id) {
+        memberService.updadeMember(member, id);
+    }
+    @PatchMapping("/{id}")
+    public void patchMember(@RequestBody Member member, @PathVariable int id) {
+        memberService.updadeMember(member, id);
     }
 }

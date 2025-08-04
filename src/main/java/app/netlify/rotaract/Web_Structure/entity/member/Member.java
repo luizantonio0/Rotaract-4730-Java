@@ -1,8 +1,7 @@
-package app.netlify.rotaract.Web_Structure.entity.member.model;
+package app.netlify.rotaract.Web_Structure.entity.member;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 @Setter
 @Getter
@@ -24,10 +23,5 @@ public class Member {
         this.name = name;
         this.description = description;
         this.image = image;
-    }
-
-    @Override
-    public String toString() {
-        return "Yes it worked" + super.toString();
     }
 }

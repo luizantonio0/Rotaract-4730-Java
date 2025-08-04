@@ -9,7 +9,7 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DataRepository<T> implements DataRepositoryI<T>{
+public class DataRepository<T> {
 
     private final Serializer<T> serializer;
     private final Connection con;
@@ -19,8 +19,7 @@ public class DataRepository<T> implements DataRepositoryI<T>{
         this.con = new Connection();
     }
 
-    @Override
-    public void save(T t){
+    public void saveInSpreadSheet(T t, final String spreadSheetId, final String sheetsName) {
         List<Object> row;
         try {
             row = serializer.serialize(t);
@@ -32,7 +31,7 @@ public class DataRepository<T> implements DataRepositoryI<T>{
 
         try {
             var appendResult = con.getSheetsService().spreadsheets().values()
-                    .append("1qt1Ql7xTzxc5SiRo3tB3-lpBc7zBM_4l0vXqwLPCnSs", "teste", appendBody )
+                    .append(spreadSheetId, sheetsName, appendBody)
                     .setValueInputOption("USER_ENTERED")
                     .setInsertDataOption("INSERT_ROWS")
                     .setIncludeValuesInResponse(true)
@@ -44,8 +43,7 @@ public class DataRepository<T> implements DataRepositoryI<T>{
         }
     }
 
-    @Override
-    public void delete(int rowId) {
+    public void deleteInSpreadSheet(int rowId) {
         try {
             int startIndex = rowId - 1;
 
@@ -73,14 +71,7 @@ public class DataRepository<T> implements DataRepositoryI<T>{
         }
     }
 
-
-    @Override
-    public T get(String id) {
-        return null;
-    }
-
-
-    public T get(final int id, final String sheetsName, final String spreadSheetId, final Class<T> tClass) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, GeneralSecurityException, IOException {
+    public T getInSpreadSheet(final int id, final String spreadSheetId, final String sheetsName, final Class<T> tClass) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, GeneralSecurityException, IOException {
         char maxColumn = (char) ('A' + tClass.getDeclaredFields().length - 1);
         var range = sheetsName + "!A%d:%c%d".formatted(id, maxColumn, id);
 
@@ -99,13 +90,7 @@ public class DataRepository<T> implements DataRepositoryI<T>{
         return serializer.deserialize(row, tClass);
     }
 
-    @Override
-    public Iterable<T> getAll() {
-        return null;
-    }
-
-    public List<T> getAll(final String spreadSheetId, final String sheetsName, final Class<T> tClass) throws IOException, GeneralSecurityException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        //Pegar a List<List<Object>> (Range = ex: A:E) e criar todos os objetos e depois mudar para lista de T e retornar
+    public List<T> getAllInSpreadSheet(final String spreadSheetId, final String sheetsName, final Class<T> tClass) throws IOException, GeneralSecurityException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         char maxColumn = (char) ('A' + tClass.getDeclaredFields().length - 1);
         var range = sheetsName + "!A:" + maxColumn;
         List<T> list = new ArrayList<>();
@@ -129,11 +114,11 @@ public class DataRepository<T> implements DataRepositoryI<T>{
         return list;
     }
 
-    public void update(T t, int id){
+    public void updateInSpreadSheet(T t, int id, final String spreadSheetId, final String sheetsName) {
         List<Object> row;
 
         char maxColumn = (char) ('A' + t.getClass().getDeclaredFields().length - 1);
-        var range = "!A%d:%c%d".formatted(id, maxColumn, id);
+        var range = sheetsName + "!A%d:%c%d".formatted(id, maxColumn, id);
 
         try {
             row = serializer.serialize(t);
@@ -145,7 +130,7 @@ public class DataRepository<T> implements DataRepositoryI<T>{
 
         try {
             UpdateValuesResponse updateValuesResponse = con.getSheetsService().spreadsheets().values()
-                    .update("1qt1Ql7xTzxc5SiRo3tB3-lpBc7zBM_4l0vXqwLPCnSs", range, body )
+                    .update(spreadSheetId, range, body)
                     .setValueInputOption("RAW")
                     .execute();
         } catch (IOException e) {
@@ -153,38 +138,5 @@ public class DataRepository<T> implements DataRepositoryI<T>{
         } catch (GeneralSecurityException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public static void main(String... Args) throws GeneralSecurityException, IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        var Data = new DataRepository<Person>();
-//        var p1 = new Person("Luiz Zabroski", 18, "Zaza", "zaza@mail.com");
-//        Data.update(p1, 3);
-        Data.delete(4);
-        System.out.println(Data.getAll("1qt1Ql7xTzxc5SiRo3tB3-lpBc7zBM_4l0vXqwLPCnSs", "teste", Person.class));
-//        var person = Data.get(2, "teste","1qt1Ql7xTzxc5SiRo3tB3-lpBc7zBM_4l0vXqwLPCnSs", Person.class);
-//        System.out.println(person);
-
-    }
-}
-class Person{
-    private String name;
-    private int age;
-    private String nickName;
-    private String email;
-    public Person(String name, int age, String nickName, String email) {
-        this.name = name;
-        this.age = age;
-        this.nickName = nickName;
-        this.email = email;
-    }
-    public Person(){}
-    @Override
-    public String toString() {
-        return "Person{" +
-                "\nname='" + name + '\'' +
-                ", \nage=" + age +
-                ", \nnickName='" + nickName + '\'' +
-                ", \nemail='" + email + '\'' +
-                "\n}";
     }
 }

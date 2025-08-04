@@ -12,7 +12,6 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
-import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.*;
 import java.security.GeneralSecurityException;
@@ -66,33 +65,6 @@ public class Connection implements IConnection{
         String APPLICATION_NAME = "Google DataBaseUsingSheets API Java Web-Structure-Rotaract";
         return this.getSheetsService(GoogleNetHttpTransport.newTrustedTransport(), this.CREDENTIALS, APPLICATION_NAME, this.JSON_FACTORY);
     }
-
-
-    public static void main(String... args) throws IOException, GeneralSecurityException {
-
-        var con = new Connection();
-        Sheets service = con.getSheetsService();
-        String range = "teste!A2:E";
-
-        final String spreadsheetId = "1qt1Ql7xTzxc5SiRo3tB3-lpBc7zBM_4l0vXqwLPCnSs";
-
-        System.out.println("Retrieving values from spreadsheet\n: " + service.spreadsheets().get(spreadsheetId));
-
-        ValueRange response = service.spreadsheets().values()
-                .get(spreadsheetId, range)
-                .execute();
-        List<List<Object>> values = response.getValues();
-        if (values == null || values.isEmpty()) {
-            System.out.println("No data found.");
-        } else {
-            System.out.println("Name, Major");
-            for (List row : values) {
-                // Print columns A and E, which correspond to indices 0 and 4.
-                System.out.printf("%s, %s\n", row.get(0), row.get(1));
-            }
-        }
-    }
-
 
     @Override
     public void connect() {
