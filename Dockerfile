@@ -1,16 +1,14 @@
-FROM ubuntu:latest AS build
-#
-RUN apt-get update
-RUN apt-get install openjdk-24-jdk -y
+FROM openjdk:24-slim AS build
+
+WORKDIR /app
 COPY . .
 
-RUN apt-get install maven -y
+RUN apt-get update && apt-get install -y maven
 RUN mvn clean install
 
-FROM openjdk:24-jdk-slim
-
-EXPOSE 8080
-
+FROM openjdk:24-slim
+WORKDIR /app
 COPY --from=build /target/Web-Structure-0.0.1-SNAPSHOT.jar app.jar
 
+EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
