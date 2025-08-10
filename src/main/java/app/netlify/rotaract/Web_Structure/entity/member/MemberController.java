@@ -6,6 +6,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/member")
+@CrossOrigin(origins = "http://localhost:4200")
 public class MemberController {
     private final MemberService memberService;
 
