@@ -6,7 +6,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/project")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "https://rotaract-parque-barigui.netlify.app")
 public class ProjectController {
     private final ProjectService projectService;
 
