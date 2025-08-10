@@ -1,15 +1,10 @@
 package app.netlify.rotaract.Web_Structure.dbConnection;
 
 import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
-import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
 
@@ -26,65 +21,41 @@ public class Connection implements IConnection{
 
     public Connection() {
         try {
-            CREDENTIALS = getCredentials(GoogleNetHttpTransport.newTrustedTransport());
+            CREDENTIALS = getCredentials();
         } catch (IOException | GeneralSecurityException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
-            throws IOException {
-        String credentialsContent = System.getenv("GOOGLE_CREDENTIALS_JSON");
 
-        if (credentialsContent != null) {
-            InputStream credentialsStream = new ByteArrayInputStream(credentialsContent.getBytes());
-            GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,
-                    new InputStreamReader(credentialsStream));
-            String TOKENS_DIRECTORY_PATH = "tokens";
+    private GoogleCredential getCredentials() throws IOException, GeneralSecurityException {
+        // Tenta pegar o JSON da service account da variável de ambiente
+        String serviceAccountJson = System.getenv("GOOGLE_SERVICE_ACCOUNT_JSON");
 
-            GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                    HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-                    .setDataStoreFactory(new FileDataStoreFactory(new File(TOKENS_DIRECTORY_PATH)))
-                    .setAccessType("offline")
-                    .build();
+        InputStream credentialsStream;
 
-            return new AuthorizationCodeInstalledApp(
-                    flow, new LocalServerReceiver.Builder().setPort(52284).build())
-                    .authorize("user");
-
-        }
-        else{
-
-            InputStream in = Connection.class.getResourceAsStream("/credentials.json");
-            if (in == null) {
-                throw new FileNotFoundException("Resource not found: credentials.json");
+        if (serviceAccountJson != null) {
+            credentialsStream = new ByteArrayInputStream(serviceAccountJson.getBytes());
+        } else {
+            // Se não tiver na variável, tenta pegar do arquivo local
+            credentialsStream = Connection.class.getResourceAsStream("src/main/resources/account_service.json");
+            if (credentialsStream == null) {
+                throw new FileNotFoundException("Resource not found: service-account.json");
             }
-
-            GoogleClientSecrets clientSecrets =
-                GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
-
-            String TOKENS_DIRECTORY_PATH = "tokens";
-
-            GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                    HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-                    .setDataStoreFactory(new FileDataStoreFactory(new File(TOKENS_DIRECTORY_PATH)))
-                    .setAccessType("offline")
-                    .build();
-
-            return new AuthorizationCodeInstalledApp(
-                    flow, new LocalServerReceiver.Builder().setPort(52284).build())
-                    .authorize("user");
         }
+
+        return GoogleCredential.fromStream(credentialsStream)
+                .createScoped(SCOPES);
     }
 
-    public Sheets getSheetsService(final NetHttpTransport HTTP_TRANSPORT, final Credential CREDENTIALS, final String APPLICATION_NAME, final JsonFactory JSON_FACTORY){
-        return new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, CREDENTIALS)
-                .setApplicationName(APPLICATION_NAME)
-                .build();
-    }
     public Sheets getSheetsService() throws GeneralSecurityException, IOException {
         String APPLICATION_NAME = "Google DataBaseUsingSheets API Java Web-Structure-Rotaract";
-        return this.getSheetsService(GoogleNetHttpTransport.newTrustedTransport(), this.CREDENTIALS, APPLICATION_NAME, this.JSON_FACTORY);
+        return new Sheets.Builder(
+                GoogleNetHttpTransport.newTrustedTransport(),
+                JSON_FACTORY,
+                CREDENTIALS)
+                .setApplicationName(APPLICATION_NAME)
+                .build();
     }
 
     @Override
