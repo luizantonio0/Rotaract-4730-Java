@@ -6,6 +6,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/transparency")
+@CrossOrigin(origins = "http://localhost:4200")
 public class TransparencyController {
     private final TransparencyService transparencyService;
 
