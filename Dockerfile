@@ -1,16 +1,17 @@
+# ----------- Build -----------
 FROM openjdk:24-slim AS build
 
 # Define o diretório de trabalho
 WORKDIR /app
 
 # Instala Maven
-RUN apt-get update && apt-get install -y maven
+RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
 
 # Copia o projeto para o container
 COPY . .
 
 # Compila o projeto (sem rodar testes)
-RUN mvn clean install -DskipTests
+RUN mvn clean package -DskipTests
 
 # ----------- Runtime -----------
 FROM openjdk:24-slim
