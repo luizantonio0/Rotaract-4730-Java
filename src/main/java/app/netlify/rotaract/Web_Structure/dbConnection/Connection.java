@@ -34,26 +34,47 @@ public class Connection implements IConnection{
 
     private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
             throws IOException {
-        String CREDENTIALS_FILE_PATH = "/credentials.json";
+        String credentialsContent = System.getenv("GOOGLE_CREDENTIALS_JSON");
 
-        InputStream in = Connection.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
-        if (in == null) {
-            throw new FileNotFoundException("Resource not found: " + CREDENTIALS_FILE_PATH);
+        if (credentialsContent != null) {
+            InputStream credentialsStream = new ByteArrayInputStream(credentialsContent.getBytes());
+            GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,
+                    new InputStreamReader(credentialsStream));
+            String TOKENS_DIRECTORY_PATH = "tokens";
+
+            GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+                    HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
+                    .setDataStoreFactory(new FileDataStoreFactory(new File(TOKENS_DIRECTORY_PATH)))
+                    .setAccessType("offline")
+                    .build();
+
+            return new AuthorizationCodeInstalledApp(
+                    flow, new LocalServerReceiver.Builder().setPort(52284).build())
+                    .authorize("user");
+
         }
-        GoogleClientSecrets clientSecrets =
+        else{
+
+            InputStream in = Connection.class.getResourceAsStream("/credentials.json");
+            if (in == null) {
+                throw new FileNotFoundException("Resource not found: credentials.json");
+            }
+
+            GoogleClientSecrets clientSecrets =
                 GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
-        String TOKENS_DIRECTORY_PATH = "tokens";
+            String TOKENS_DIRECTORY_PATH = "tokens";
 
-        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-                .setDataStoreFactory(new FileDataStoreFactory(new File(TOKENS_DIRECTORY_PATH)))
-                .setAccessType("offline")
-                .build();
+            GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+                    HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
+                    .setDataStoreFactory(new FileDataStoreFactory(new File(TOKENS_DIRECTORY_PATH)))
+                    .setAccessType("offline")
+                    .build();
 
-        return new AuthorizationCodeInstalledApp(
-                flow, new LocalServerReceiver.Builder().setPort(52284).build())
-                .authorize("user");
+            return new AuthorizationCodeInstalledApp(
+                    flow, new LocalServerReceiver.Builder().setPort(52284).build())
+                    .authorize("user");
+        }
     }
 
     public Sheets getSheetsService(final NetHttpTransport HTTP_TRANSPORT, final Credential CREDENTIALS, final String APPLICATION_NAME, final JsonFactory JSON_FACTORY){
