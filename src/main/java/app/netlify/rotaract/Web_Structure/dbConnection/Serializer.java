@@ -21,8 +21,11 @@ public class Serializer<T> {
             field.setAccessible(true);
             Object value = row.get(i);
 
-            if (value == null || "null".equals(value)) {
+            if (value == null) {
                 continue;
+            }
+            if("null".equals(value)){
+                value = "";
             }
 
             var type = field.getType();

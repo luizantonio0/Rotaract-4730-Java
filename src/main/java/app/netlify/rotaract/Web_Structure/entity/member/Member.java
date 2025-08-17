@@ -10,6 +10,7 @@ public class Member {
     private String email;
     private String description;
     private String image;
+    private String role;
 
     public Member() {
     }
